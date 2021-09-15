@@ -1,26 +1,33 @@
-Function.prototype._bind = function () {
-  var that = this;
-  var obj = arguments[0]
-  var arr1 = Array.prototype.slice.call(arguments, 1)
-  return function () {
-    var arr2 = Array.prototype.slice.call(arguments, 0);
-    var arr = arr1.concat(arr2)
-    that.apply(obj,arr)
+Function.prototype._bind = function() {
+  let fToBind = this;
+  let thisToBind = arguments[0];
+  let args1 = Array.prototype.slice.call(arguments, 1);
+  let fTmp = function () { }
+  fTmp.prototype = fToBind.prototype;
+  let fBound = function() {
+    let args2 = Array.prototype.slice.call(arguments);
+    let args = args1.concat(args2);
+    return fToBind.apply(this instanceof fBound ? this : thisToBind, args);
   }
+  fBound.prototype = new fTmp();
+  return fBound;
 }
 
-var person = {
-  name: 'Mike'
+/* test */
+let jack = {
+  name: 'Jack'
 }
 
-function intro(a, b, c) {
+function getName(age) {
   console.log(this.name)
-  console.log(a,b,c)
-  return {
-    name: this.name,
-    nums: {
-      a: a, b: b, c: c
-    }
+  if (age) {
+    this.age = age;
+    console.log(this.age);
   }
 }
-intro._bind(person,1,2)(4);
+
+let bounded = getName._bind(jack);
+let newed = new bounded(11);
+
+console.log(jack);
+console.log(newed instanceof getName);
